@@ -61,6 +61,7 @@ public class CucumberPosSteps {
     }
 
     private List<PosDto> createdPosList;
+    private List<PosDto> posListOfThree;
     private PosDto updatedPos;
 
     /**
@@ -91,7 +92,11 @@ public class CucumberPosSteps {
         assertThat(retrievedPosList).isEmpty();
     }
 
-    // TODO: Add Given step for new scenario
+    @Given("a POS list with three entires")
+    public void aPosListWithThreeEntries(List<PosDto> posList) {
+        posListOfThree = createPos(posList);
+        assertThat(posListOfThree).size().isEqualTo(3);
+    }
 
     // When -----------------------------------------------------------------------
 
@@ -101,7 +106,24 @@ public class CucumberPosSteps {
         assertThat(createdPosList).size().isEqualTo(posList.size());
     }
 
-    // TODO: Add When step for new scenario
+    @When("I update the description of a POS based on a name {string}")
+    public void updateTheDescriptionOfThePosBasedOnName(String name) {
+        PosDto posToUpdate = retrievePosByName(name);
+
+        updatedPos = posToUpdate.toBuilder()
+                            .description("Best waffles")
+                            .build();
+
+        List<PosDto> posListToUpdate = createPos(List.of(
+                                                    updatedPos,
+                                                    posListOfThree.get(1), 
+                                                    posListOfThree.get(2))
+                                                );
+
+        updatePos(posListToUpdate);
+
+        assertThat(updatedPos.description()).isEqualTo("Best waffles");
+    }
 
     // Then -----------------------------------------------------------------------
 
@@ -113,5 +135,9 @@ public class CucumberPosSteps {
                 .containsExactlyInAnyOrderElementsOf(createdPosList);
     }
 
-    // TODO: Add Then step for new scenario
+    @Then("the POS list should contain the POS with the updated description and the two unchanged POS in any order")
+    public void thePosListShouldContainThePosWithTheUpdatedDescriptionAndTheTwoUnchangedPosInAnyOrder() {
+        assertThat(posListOfThree.size()).isEqualTo(3);
+        assertThat(retrievePosByName("Schmelzpunkt").description()).isEqualTo("Best waffles");
+    }
 }
